@@ -1,7 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <conio.h>
 #include <windows.h>
 #include <thread>
+
+
 using namespace std;
 
 // Global variables for width and height
@@ -15,7 +18,7 @@ public:
         cout << "Snake Game Instructions" << endl;
         cout << "Use the arrow keys to control the snake." << endl;
         cout << "Eat the fruit to grow longer and earn points." << endl;
-        cout << "Avoid running into the walls or yourself." << endl;
+        cout << "Avoid running into yourself." << endl;
         cout << "Press any key to start the game..." << endl;
         cout << "\n\n\n\n\n********** WARNING: DO NOT PLAY IF YOU HAVE EPILEPSY!! ***********" << endl;
         _getch(); // Wait for a key press before starting the game
@@ -25,11 +28,16 @@ public:
 class GameOverScreen {
 public:
     static void Show(int score) {
-        system("cls");
-        cout << "Game Over!" << endl;
-        cout << "Your score: " << score << endl;
-        cout << "Press any key to exit...";
-        _getch(); // Wait for a key press before exiting
+        ofstream outFile("game_over.txt"); // Open file for writing
+        if (outFile.is_open()) {
+            outFile << "Game Over!" << endl;
+            outFile << "Your score: " << score << endl;
+            outFile << "Press any key to exit...";
+            outFile.close(); // Close the file
+        }
+        else {
+            cout << "Unable to open file for writing!" << endl;
+        }
     }
 };
 
@@ -65,15 +73,38 @@ public:
     }
 };
 
+// Example 1: Inheritance from Instructions
+class CustomInstructions : public Instructions {
+public:
+    void ShowInstructions() override {
+        Instructions::ShowInstructions();
+        // Additional custom instructions
+        cout << "Custom instructions for this game..." << endl;
+    }
+};
+
+// Example 2: Inheritance from SoundSystem
+class CustomSoundSystem : public SoundSystem {
+public:
+    // Add additional sound functionality if needed
+};
+
+// Example 3: Inheritance from GraphicsSystem
+class CustomGraphicsSystem : public GraphicsSystem {
+public:
+    // Add additional graphics functionality if needed
+};
+
 class SnakeGame : public Instructions, public SoundSystem, public GraphicsSystem {
 private:
     bool gameOver;
     int x, y, fruitX, fruitY, score;
     int tailX[100], tailY[100];
     int nTail;
-    enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN };
+    enum eDirection { STOP = 0, LEFT = 1, RIGHT = 2, UP = 4, DOWN = 8 }; // Using bitwise OR to set direction flags
     eDirection dir;
     Board board;
+    void (SnakeGame::* InputFunction)(); // Function pointer for input
 
 public:
     SnakeGame() {
@@ -84,6 +115,7 @@ public:
         score = 0;
         nTail = 0;
         Setup();
+        InputFunction = &SnakeGame::ProcessInput; // Set default input function
     }
 
     void Setup() {
@@ -149,7 +181,7 @@ public:
         cout << "Score:" << score << endl;
     }
 
-    void Input() {
+    void ProcessInput() {
         if (_kbhit()) {
             switch (_getch()) {
             case 'a':
@@ -168,6 +200,26 @@ public:
                 gameOver = true;
                 break;
             }
+        }
+    }
+
+    void ProcessInput(int keyCode) {
+        switch (keyCode) {
+        case 75: // Left arrow key
+            dir = LEFT;
+            break;
+        case 77: // Right arrow key
+            dir = RIGHT;
+            break;
+        case 72: // Up arrow key
+            dir = UP;
+            break;
+        case 80: // Down arrow key
+            dir = DOWN;
+            break;
+        case 'x':
+            gameOver = true;
+            break;
         }
     }
 
@@ -230,7 +282,7 @@ public:
         while (!gameOver) {
             RenderFrame();
             Draw();
-            Input();
+            (this->*InputFunction)(); // Call the appropriate input function based on the input mode
             Logic();
             Sleep(150); // sleep(10);
         }
@@ -243,10 +295,63 @@ public:
         PlayGameOverSound();
         GameOverScreen::Show(score);
     }
+
+    void SetInputMode(bool useArrowKeys) {
+        if (useArrowKeys) {
+            InputFunction = &SnakeGame::ProcessInput;
+        }
+        else {
+            InputFunction = &SnakeGame::ProcessInput;
+        }
+    }
+
+    // Operator overloading for concatenating two snake games
+    SnakeGame operator+(const SnakeGame& other) const {
+        // Create a new SnakeGame object
+        SnakeGame combinedGame;
+
+        // Copy the state of the current game
+        combinedGame.gameOver = this->gameOver;
+        combinedGame.x = this->x;
+        combinedGame.y = this->y;
+        combinedGame.fruitX = this->fruitX;
+        combinedGame.fruitY = this->fruitY;
+        combinedGame.score = this->score;
+        combinedGame.nTail = this->nTail;
+        combinedGame.dir = this->dir;
+        for (int i = 0; i < this->nTail; ++i) {
+            combinedGame.tailX[i] = this->tailX[i];
+            combinedGame.tailY[i] = this->tailY[i];
+        }
+
+        // Concatenate the tail of the current game with the tail of the other game
+        for (int i = 0; i < other.nTail; ++i) {
+            combinedGame.tailX[combinedGame.nTail + i] = other.tailX[i];
+            combinedGame.tailY[combinedGame.nTail + i] = other.tailY[i];
+        }
+        combinedGame.nTail += other.nTail;
+
+        return combinedGame;
+    }
 };
 
 int main() {
-    SnakeGame game; // SnakeGame object
+    // Example 1: Inheritance from Instructions
+    CustomInstructions customInstructions;
+    customInstructions.ShowInstructions();
+
+    // Example 2: Inheritance from SoundSystem
+    CustomSoundSystem customSound;
+    customSound.PlayBackgroundMusic();
+    customSound.PlayGameOverSound();
+
+    // Example 3: Inheritance from GraphicsSystem
+    CustomGraphicsSystem customGraphics;
+    customGraphics.InitializeGraphics();
+    customGraphics.RenderFrame();
+
+    // SnakeGame object
+    SnakeGame game;
     game.RunGame();
     return 0;
 }

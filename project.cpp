@@ -3,7 +3,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <thread>
-#include <regex> // Include the regex header
+#include <regex> 
 
 using namespace std;
 
@@ -11,6 +11,7 @@ using namespace std;
 const int WIDTH = 20;
 const int HEIGHT = 15;
 
+// Sets up instructions screen
 class Instructions {
 public:
     virtual void ShowInstructions() {
@@ -33,6 +34,7 @@ public:
     }
 };
 
+// Sets up game over screen
 class GameOverScreen {
 public:
     static void Show(int score) {
@@ -55,6 +57,7 @@ public:
     int getHeight() { return HEIGHT; }
 };
 
+// For future 
 class SoundSystem {
 public:
     void PlayBackgroundMusic() {
@@ -68,6 +71,7 @@ public:
     }
 };
 
+// For future
 class GraphicsSystem {
 public:
     void InitializeGraphics() {
@@ -81,7 +85,7 @@ public:
     }
 };
 
-// Example 1: Inheritance from Instructions
+// Inheritance from Instructions
 class CustomInstructions : public Instructions {
 public:
     void ShowInstructions() override {
@@ -103,7 +107,7 @@ public:
     }
 };
 
-// Example 2: Inheritance from SoundSystem
+// Inheritance from SoundSystem
 class CustomSoundSystem : public SoundSystem {
 public:
     // Add additional sound functionality if needed
@@ -115,6 +119,7 @@ public:
     // Add additional graphics functionality if needed
 };
 
+// main class
 class SnakeGame : public Instructions, public SoundSystem, public GraphicsSystem {
 private:
     bool gameOver;
@@ -186,7 +191,7 @@ public:
     void ShowInstructions() override {
         Instructions::ShowInstructions();
     }
-
+    // Draws game board
     void Draw() {
         system("cls");
         for (int i = 0; i < board.getWidth() + 2; i++)
@@ -266,7 +271,7 @@ public:
             break;
         }
     }
-
+    // logic flow of the game 
     void Logic() {
         int prevX = tailX[0];
         int prevY = tailY[0];
@@ -389,18 +394,18 @@ void Swap(T& a, T& b) {
 }
 
 int main() {
-    // Example 1: Inheritance from Instructions
+    //Inheritance from Instructions
     CustomInstructions customInstructions;
     customInstructions.ShowInstructions();
     customInstructions.ShowControls(); // Using the additional virtual function
     customInstructions.ShowWarnings(); // Using the additional virtual function
 
-    // Example 2: Inheritance from SoundSystem
+    // Inheritance from SoundSystem
     CustomSoundSystem customSound;
     customSound.PlayBackgroundMusic();
     customSound.PlayGameOverSound();
 
-    // Example 3: Inheritance from GraphicsSystem
+    // Inheritance from GraphicsSystem
     CustomGraphicsSystem customGraphics;
     customGraphics.InitializeGraphics();
     customGraphics.RenderFrame();

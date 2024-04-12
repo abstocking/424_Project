@@ -3,7 +3,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <thread>
-
+#include <regex> // Include the regex header
 
 using namespace std;
 
@@ -16,12 +16,20 @@ public:
     virtual void ShowInstructions() {
         system("cls");
         cout << "Snake Game Instructions" << endl;
-        cout << "Use the arrow keys to control the snake." << endl;
+        cout << "Use the W-A-S-D keys to control the snake." << endl;
         cout << "Eat the fruit to grow longer and earn points." << endl;
         cout << "Avoid running into yourself." << endl;
         cout << "Press any key to start the game..." << endl;
         cout << "\n\n\n\n\n********** WARNING: DO NOT PLAY IF YOU HAVE EPILEPSY!! ***********" << endl;
         _getch(); // Wait for a key press before starting the game
+    }
+
+    virtual void ShowControls() {
+        cout << "Controls: W-A-S-D keys" << endl;
+    }
+
+    virtual void ShowWarnings() {
+        cout << "********** WARNING: DO NOT PLAY IF YOU HAVE EPILEPSY!! ***********" << endl;
     }
 };
 
@@ -50,12 +58,12 @@ public:
 class SoundSystem {
 public:
     void PlayBackgroundMusic() {
-        // Code to play background music
+        // Code to play background music (optional)
         cout << "Playing background music..." << endl;
     }
 
     void PlayGameOverSound() {
-        // Code to play game over sound
+        // Code to play game over sound (optional)
         cout << "Playing game over sound..." << endl;
     }
 };
@@ -63,12 +71,12 @@ public:
 class GraphicsSystem {
 public:
     void InitializeGraphics() {
-        // Code to initialize graphics system
+        // Code to initialize graphics system (optional)
         cout << "Initializing graphics system..." << endl;
     }
 
     void RenderFrame() {
-        // Code to render game frame
+        // Code to render game frame (optional)
         cout << "" << endl;
     }
 };
@@ -80,6 +88,18 @@ public:
         Instructions::ShowInstructions();
         // Additional custom instructions
         cout << "Custom instructions for this game..." << endl;
+    }
+
+    void ShowControls() override {
+        Instructions::ShowControls();
+        // Additional custom controls
+        cout << "Custom controls for this game..." << endl;
+    }
+
+    void ShowWarnings() override {
+        Instructions::ShowWarnings();
+        // Additional custom warnings
+        cout << "Custom warnings for this game..." << endl;
     }
 };
 
@@ -116,6 +136,30 @@ public:
         nTail = 0;
         Setup();
         InputFunction = &SnakeGame::ProcessInput; // Set default input function
+    }
+    // Overloading the addition assignment operator (+=)
+    SnakeGame& operator+=(const SnakeGame& other) {
+        // Concatenate the tail of the other game with the tail of this game
+        for (int i = 0; i < other.nTail; ++i) {
+            tailX[nTail + i] = other.tailX[i];
+            tailY[nTail + i] = other.tailY[i];
+        }
+        nTail += other.nTail;
+
+        return *this;
+    }
+
+    // Overloading the subtraction assignment operator (-=)
+    SnakeGame& operator-=(int length) {
+        // Decrease the length of the tail by 'length'
+        if (length >= nTail) {
+            nTail = 0; // Reset the tail length if 'length' exceeds the current length
+        }
+        else {
+            nTail -= length;
+        }
+
+        return *this;
     }
 
     void Setup() {
@@ -285,6 +329,7 @@ public:
             (this->*InputFunction)(); // Call the appropriate input function based on the input mode
             Logic();
             Sleep(150); // sleep(10);
+            double fruitpiece = 3.5;
         }
     }
 
@@ -335,10 +380,20 @@ public:
     }
 };
 
+// Template function to swap two values
+template<typename T>
+void Swap(T& a, T& b) {
+    T temp = a;
+    a = b;
+    b = temp;
+}
+
 int main() {
     // Example 1: Inheritance from Instructions
     CustomInstructions customInstructions;
     customInstructions.ShowInstructions();
+    customInstructions.ShowControls(); // Using the additional virtual function
+    customInstructions.ShowWarnings(); // Using the additional virtual function
 
     // Example 2: Inheritance from SoundSystem
     CustomSoundSystem customSound;
@@ -353,6 +408,18 @@ int main() {
     // SnakeGame object
     SnakeGame game;
     game.RunGame();
+
+    // Regular expression example
+    string testString = "This is a Snake game.";
+    regex pattern("Snake");
+
+    if (regex_search(testString, pattern)) {
+        cout << "The string contains the word 'Snake'." << endl;
+    }
+    else {
+        cout << "The string does not contain the word 'Snake'." << endl;
+    }
+
     return 0;
 }
 
